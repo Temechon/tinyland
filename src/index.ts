@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import Demo from './scenes/Game';
+import { Boot } from './scenes/Boot';
+import Game from './scenes/Game';
 
 new Phaser.Game({
   type: Phaser.AUTO,
@@ -10,7 +11,8 @@ new Phaser.Game({
     height: window.innerHeight * devicePixelRatio,
   },
   scene: [
-    Demo
+    Boot,
+    Game
   ]
 }
 );

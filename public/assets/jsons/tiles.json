@@ -1,0 +1,58 @@
+[
+    {
+        "type": "land",
+        "key": [
+            "land",
+            "land2"
+        ],
+        "defenseModifier": 0,
+        "resources": {
+            "gold": "+1",
+            "food": "+1"
+        }
+    },
+    {
+        "type": "water",
+        "key": "water",
+        "defenseModifier": 0,
+        "resources": {
+            "food": "+2"
+        }
+    },
+    {
+        "type": "deepwater",
+        "key": "deepwater",
+        "defenseModifier": 0,
+        "resources": {
+            "food": "+2"
+        }
+    },
+    {
+        "type": "forest",
+        "key": [
+            "land",
+            "land2",
+            "land3"
+        ],
+        "defenseModifier": 0.25,
+        "resources": {
+            "gold": "+1"
+        }
+    },
+    {
+        "type": "mountain",
+        "key": "land3",
+        "defenseModifier": 0.5,
+        "resources": {
+            "science": "+2"
+        }
+    },
+    {
+        "type": "toundra",
+        "key": "toundra",
+        "defenseModifier": 0,
+        "resources": {
+            "gold": "+1"
+        }
+    }
+]
