@@ -1,7 +1,7 @@
 import { guid } from "../../helpers/Helpers";
 import { HexGrid } from "../../helpers/HexGrid";
 import { ratio } from "../../scenes/Boot";
-import { TileInfo } from "./TileInfo";
+import { TileInfo, TileType } from "./TileInfo";
 
 import * as _ from 'underscore';
 
@@ -81,6 +81,18 @@ export class Tile extends Phaser.GameObjects.Image {
 
     get vertices(): Array<Vertex> {
         return this._vertices;
+    }
+
+    get isWater(): boolean {
+        return this.infos.type === TileType.Water || this.infos.type === TileType.DeepWater;
+    }
+
+    get isForest(): boolean {
+        return this.infos.type === TileType.Forest;
+    }
+
+    get isMountain(): boolean {
+        return this.infos.type === TileType.Mountain;
     }
 
     /**
