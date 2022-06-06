@@ -4,6 +4,9 @@ import { ratio } from "../../scenes/Boot";
 import { TileInfo, TileType } from "./TileInfo";
 
 import * as _ from 'underscore';
+import { CameraHelper } from "../../helpers/CameraHelper";
+import { IClickable } from "../IClickable";
+import { City } from "../City";
 
 enum NEIGHBOURS_DIRECTIONS {
     NORTH_WEST = 0,
@@ -23,7 +26,10 @@ export enum ResourceType {
 export type Vertex = { coords: Phaser.Types.Math.Vector2Like, neighbours: number[] };
 export type RQ = { r: number, q: number };
 
-export class Tile extends Phaser.GameObjects.Image {
+export class Tile extends Phaser.GameObjects.Image implements IClickable {
+
+    static SELECTOR: Phaser.GameObjects.Image = null;
+    static TILE_SELECTED: Tile = null;
 
     /** Row and col number */
     public rq: RQ;
@@ -36,6 +42,14 @@ export class Tile extends Phaser.GameObjects.Image {
 
     /** This tile info : kind of tile, defense modifier, resource bonus... */
     infos: TileInfo;
+
+    /** The stuff that is currently on this tile - Can be one unit and one city for example*/
+    private _onIt: IClickable[] = [];
+    /** The index in the 'onIt' array of the stuff that is currently activated */
+    private currentlyActivatedIndex: number = 0;
+
+    /** The list of sprites added on this tile (trees, rocks...) */
+    assets: Array<Phaser.GameObjects.Image> = [];
 
 
     constructor(config: {
@@ -51,8 +65,29 @@ export class Tile extends Phaser.GameObjects.Image {
         this.scale = ratio;
         this.rq = { r: config.r, q: config.q };
         this.name = guid();
+        this._onIt.push(this);
         this.setInteractive();
         this.on('pointerup', this.onPointerUp.bind(this));
+    }
+
+    /**
+     * Action called when this tile is clicked
+     */
+    activate() {
+        console.log("Display tile info")
+    }
+    /**
+     * Called when this tile is deactivated
+     */
+    public deactivate() {
+        this.currentlyActivatedIndex = 0;
+    }
+
+    /** 
+     * Returns true if this tile has a city on it, false otherwise
+     */
+    public get hasCity(): boolean {
+        return this._onIt.filter(s => s instanceof City).length > 0;
     }
 
     /** Set the given infos to this tile */
@@ -85,6 +120,9 @@ export class Tile extends Phaser.GameObjects.Image {
 
     get isWater(): boolean {
         return this.infos.type === TileType.Water || this.infos.type === TileType.DeepWater;
+    }
+    get isToundra(): boolean {
+        return this.infos.type === TileType.Toundra;
     }
 
     get isForest(): boolean {
@@ -219,8 +257,106 @@ export class Tile extends Phaser.GameObjects.Image {
     }
 
     public onPointerUp() {
-        console.log("up");
 
+        // Remove the tile selector
+        if (Tile.SELECTOR) {
+            Tile.SELECTOR.destroy();
+        }
+        // IF the player moves the camera, don't do anything
+        if (CameraHelper.MOVING) {
+            return;
+        }
+
+        Tile.TILE_SELECTED = this;
+
+
+        let selector = this.scene.add.image(this.worldPosition.x, this.worldPosition.y, 'selector');
+        selector.scale = ratio;
+
+        // Make it appear in a fancy way
+        this.scene.tweens.add({
+            targets: selector,
+            scale: {
+                from: ratio * 2,
+                to: ratio
+            },
+            ease: Phaser.Math.Easing.Back.Out,
+            duration: 200
+        });
+
+        selector.depth = 4;
+        Tile.SELECTOR = selector;
+
+        // If we cycle around all stuff on this tile, reset all
+        if (this.currentlyActivatedIndex === this._onIt.length) {
+            this._onIt[this.currentlyActivatedIndex - 1].deactivate();
+            this.currentlyActivatedIndex = 0;
+
+            // Make it appear in a fancy way
+            this.scene.tweens.add({
+                targets: selector,
+                scale: {
+                    from: ratio,
+                    to: ratio * 2
+                },
+                ease: Phaser.Math.Easing.Back.In,
+                duration: 100,
+                onComplete: () => {
+                    Tile.SELECTOR.destroy();
+                }
+            });
+            return;
+        }
+        // Deactivate last activated stuff
+        if (this.currentlyActivatedIndex - 1 >= 0) {
+            this._onIt[this.currentlyActivatedIndex - 1].deactivate();
+        }
+        // Activate next stuff on this tile
+        let stuff = this._onIt[this.currentlyActivatedIndex];
+        this.currentlyActivatedIndex++;
+        stuff.activate();
+
+    }
+
+    /**
+     * Add the given stuff at the beginning of the onIt array. This stuff is now on this tile 
+     */
+    public addClickable(c: IClickable) {
+        this._onIt.unshift(c);
+    }
+
+    public addCity(city: City) {
+        // We cannot select the tile anymore, only the city. 
+        this.removeClickable(this);
+        // All assets on this tile are removed
+        this.removeAssets();
+        // Defense modifier updated
+        this.infos.defenseModifier = 0.25
+        // Add the city to this tile
+        this.addClickable(city);
+    }
+
+    /**
+     * Removes all assets on this tile : trees, mountains, etc.
+     */
+    private removeAssets() {
+        // Remove assets from the tile
+        for (let ass of this.assets) {
+            ass.destroy();
+        }
+    }
+
+    /**
+     * Remove the given stuff from the onIt array. This stuff is no longer on this tile 
+     */
+    public removeClickable(c: IClickable) {
+        let index = this._onIt.indexOf(c);
+        if (index === -1) {
+            console.warn("This stuff was not on this tile!")
+        } else {
+            this._onIt.splice(index, 1);
+        }
+        this.currentlyActivatedIndex = 0;
     }
 
     /**

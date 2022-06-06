@@ -90,14 +90,6 @@ export class WorldMap extends Phaser.GameObjects.Container {
                 continue
             }
 
-            // if (noise < Constants.MAP.BEACH) {
-            //     tile.setInfos(allTilesType[TileType.Water]);
-            //     tile.infos.type = TileType.Beach;
-            //     tile.setTexture("beach")
-            //     tile.infos.key = "beach";
-            //     continue
-            // }
-
             if (noiseForest < Constants.MAP.FOREST.THRESHOLD) {
                 tile.setInfos(allTilesType[TileType.Forest]);
                 continue
@@ -108,7 +100,6 @@ export class WorldMap extends Phaser.GameObjects.Container {
             }
 
             tile.setInfos(allTilesType[TileType.Land]);
-
         }
 
         // Arctic on north and south of the map (r = +-MAP.SIZE)
@@ -139,6 +130,7 @@ export class WorldMap extends Phaser.GameObjects.Container {
             img.scale = ratio;
             img.depth = Constants.LAYER.TREES_AND_RESOURCES;
             this.allAssets.add(img)
+            t.assets.push(img);
 
         }, t => t.isForest)
 
@@ -152,9 +144,34 @@ export class WorldMap extends Phaser.GameObjects.Container {
             img.scale = ratio;
             img.depth = Constants.LAYER.TREES_AND_RESOURCES;
             this.allAssets.add(img)
+            t.assets.push(img);
 
         }, t => t.isMountain)
         this.bringToTop(this.allAssets)
+    }
+
+    /**
+     * Returns true if the given tile is a correct starting point for a tribe.
+     * Takes the ring(2) of this tile and check all tiles: 
+     * - If the tile is on the border of the map, not valid.
+     * - If the ring contains more than X water tile or toundra tile, not valid.
+     */
+    isStartingLocationCorrect(t: Tile): boolean {
+        if (t.hasCity) {
+            return false;
+        }
+        let ring = this._grid.ring(t.rq.q, t.rq.r, 2);
+        let tilesInRing = this.getTilesByAxialCoords(ring);
+        // The starting location should not be on the border of the map
+        if (tilesInRing.length <= 7) {
+            return false;
+        }
+        // The starting location should not be near too much water nor toundra
+        let nbWaterInRing = tilesInRing.filter(t => t.isWater || t.isToundra).length;
+        if (nbWaterInRing < tilesInRing.length / 3) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -276,6 +293,40 @@ export class WorldMap extends Phaser.GameObjects.Container {
 
     public getTile(x: number, y: number): Tile | null {
         return this._tiles[x][y] || null;
+    }
+
+    /**
+     * Tries 10 times max to get 'nb' tiles separated by 'disancemax' tiles. 
+     * If the selected tile does not answer to the condition, a new try is done
+     */
+    getEvenlyLocatedTiles(nbTiles: number, distanceMax: number, condition: (t: Tile) => boolean): Array<Tile> {
+        let res = [];
+        // If no condition is set, the selected tile is the corect one
+        if (!condition) {
+            condition = t => true;
+        }
+        for (let i = distanceMax; i > 0; i--) {
+            // Let's try 10 times at this distance
+            for (let tryy = 0; tryy < 10; tryy++) {
+                let chosenTiles = [];
+                let allLandTiles = this.getAllTiles(t => condition(t));
+
+                for (let j = 0; j < nbTiles; j++) {
+                    if (allLandTiles.length === 0) {
+                        break;
+                    }
+                    let tile = Phaser.Math.RND.pick(allLandTiles);
+                    allLandTiles = allLandTiles.filter(t => HexGrid.axialDistance(t.rq.q, t.rq.r, tile.rq.q, tile.rq.r) >= i);
+                    chosenTiles.push(tile);
+                }
+                if (chosenTiles.length === nbTiles) {
+                    // console.log("final distance", i)
+                    return chosenTiles;
+                }
+            }
+        }
+        console.warn("Impossible to find ", nbTiles, "evenly placed tiles at distance", distanceMax)
+        return res;
     }
 
 }

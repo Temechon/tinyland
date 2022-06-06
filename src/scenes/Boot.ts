@@ -27,9 +27,9 @@ export class Boot extends Phaser.Scene {
         this.load.image('mountain', 'assets/hex/mountain.png');
         this.load.image('mountain2', 'assets/hex/mountain2.png');
 
-        // this.load.image('selector', 'assets/selector.png');
+        this.load.image('selector', 'assets/hex/selector.png');
 
-        // this.load.image('city', 'assets/city.png');
+        this.load.image('city', 'assets/city.png');
 
         // Units
         // this.load.image('warrior', 'assets/units/warrior.png');
