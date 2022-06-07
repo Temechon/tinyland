@@ -1,5 +1,6 @@
 import { Helpers } from "../helpers/Helpers";
 import { ratio } from "../scenes/Boot";
+import { Constants } from "./Constants";
 import { IClickable } from "./IClickable";
 import { Tile } from "./map/Tile";
 import { Tribe } from "./Tribe";
@@ -41,16 +42,16 @@ export class City extends Phaser.GameObjects.Container implements IClickable {
             font: "font_normal",
             size: 45 * ratio,
             text: this.name,
-            depth: 10
+            depth: Constants.LAYER.TRIBE_ROOT
         }).setOrigin(0.5, -1.5);
         this.add(nameText);
     }
 
     activate() {
-        throw new Error("Method not implemented.");
+        console.log("🏘️ --> Activated")
     }
     deactivate() {
-        throw new Error("Method not implemented.");
+        console.log("🏘️ --> Deactivated")
     }
 
 

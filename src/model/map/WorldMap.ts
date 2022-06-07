@@ -128,7 +128,6 @@ export class WorldMap extends Phaser.GameObjects.Container {
             img = this.scene.add.image(t.x, t.y, Phaser.Math.RND.pick(trees));
             img.setOrigin(0.5, 0.65)
             img.scale = ratio;
-            img.depth = Constants.LAYER.TREES_AND_RESOURCES;
             this.allAssets.add(img)
             t.assets.push(img);
 
@@ -142,7 +141,6 @@ export class WorldMap extends Phaser.GameObjects.Container {
 
             img = this.scene.add.image(t.x, t.y, Phaser.Math.RND.pick(mountain));
             img.scale = ratio;
-            img.depth = Constants.LAYER.TREES_AND_RESOURCES;
             this.allAssets.add(img)
             t.assets.push(img);
 
@@ -326,6 +324,50 @@ export class WorldMap extends Phaser.GameObjects.Container {
             }
         }
         console.warn("Impossible to find ", nbTiles, "evenly placed tiles at distance", distanceMax)
+        return res;
+    }
+
+    /**
+     * Returns all tiles (excluding the given tile) in a distance of 'nb' around the given tile.
+     */
+    getRing(t: Tile, nb: number = 1): Array<Tile> {
+        let r = nb;
+        let ring = [];
+        while (r > 0) {
+            ring.push(...this.getTilesByAxialCoords(
+                this._grid.ring(
+                    t.rq.q, t.rq.r, r
+                )
+            ))
+            r--;
+        }
+        return ring;
+    }
+
+    /**
+     * Returns the list of tile corresponding to the given moving range.
+     * Also checks if a path between from and each tile can be made
+     */
+    public getMoveRange(config: { from: Tile; movement: number; }): Array<Tile> {
+        let res: Tile[] = [];
+        let range: Tile[] = [];
+
+        range = this.getRing(config.from, config.movement);
+
+        // For each tile of the ring, check if a path can be made between 'from' and the tile
+        for (let n of range) {
+            // Check if the path between the 'from' tile and this neighbours is <= to the range number
+            if (n.isWater) {
+                continue;
+            }
+
+            let path = this._landgraph.shortestPath(config.from.name, n.name);
+            if (path.length < 1 || path.length >= config.movement + 1) {
+                continue
+            }
+
+            res.push(n);
+        }
         return res;
     }
 

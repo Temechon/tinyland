@@ -1,8 +1,6 @@
 export var ratio: number;
 // export var bounds: Phaser.Geom.Rectangle;
 
-declare var Chance: any;
-
 export class Boot extends Phaser.Scene {
 
     constructor() {
@@ -32,7 +30,7 @@ export class Boot extends Phaser.Scene {
         this.load.image('city', 'assets/city.png');
 
         // Units
-        // this.load.image('warrior', 'assets/units/warrior.png');
+        this.load.image('warrior', 'assets/units/warrior.png');
         // this.load.image('settler', 'assets/units/settler.png');
         // this.load.image('settler_create', 'assets/units/settler_create.png');
 
@@ -47,8 +45,8 @@ export class Boot extends Phaser.Scene {
         // this.load.image('iron', 'assets/resources/iron.png');
         // this.load.image('gold', 'assets/resources/gold.png');
 
-        // Units
-        // this.load.json("units", "assets/jsons/units.json");
+        // JSONS
+        this.load.json("units", "assets/jsons/units.json");
         // this.load.json("resources", "assets/jsons/resources.json");
         this.load.json("tiles", "assets/jsons/tiles.json");
 

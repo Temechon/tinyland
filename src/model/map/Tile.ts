@@ -74,13 +74,14 @@ export class Tile extends Phaser.GameObjects.Image implements IClickable {
      * Action called when this tile is clicked
      */
     activate() {
-        console.log("Display tile info")
+        console.log("🌍 --> Activated")
     }
     /**
      * Called when this tile is deactivated
      */
     public deactivate() {
         this.currentlyActivatedIndex = 0;
+        console.log("🌍 --> Deactivated")
     }
 
     /** 
@@ -258,6 +259,11 @@ export class Tile extends Phaser.GameObjects.Image implements IClickable {
 
     public onPointerUp() {
 
+        // If selected tile is another tile than this one, deactivate the selected tile first
+        if (Tile.TILE_SELECTED !== this) {
+            Tile.TILE_SELECTED?.deactivate();
+        }
+
         // Remove the tile selector
         if (Tile.SELECTOR) {
             Tile.SELECTOR.destroy();
@@ -269,10 +275,7 @@ export class Tile extends Phaser.GameObjects.Image implements IClickable {
 
         Tile.TILE_SELECTED = this;
 
-
         let selector = this.scene.add.image(this.worldPosition.x, this.worldPosition.y, 'selector');
-        selector.scale = ratio;
-
         // Make it appear in a fancy way
         this.scene.tweens.add({
             targets: selector,

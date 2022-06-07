@@ -1,0 +1,13 @@
+[
+    {
+        "name": "Warrior",
+        "key": "warrior",
+        "movement": 1,
+        "range": 1,
+        "strength": 3,
+        "hpmax": 10,
+        "cost": 5,
+        "vision": 3,
+        "description": "A basic unit to kill others"
+    }
+]

@@ -1,6 +1,7 @@
 import { City } from "./City";
 import { Constants } from "./Constants";
 import { ResourceType, Tile } from "./map/Tile";
+import { Unit } from "./Unit";
 
 /**
  * A tribe is a set of cities, units and resources available on the map.
@@ -9,7 +10,7 @@ export class Tribe extends Phaser.GameObjects.Container {
 
 
     public cities: City[] = [];
-    // public units: Unit[] = [];
+    public units: Unit[] = [];
 
     /** THe first city created for this tribe */
     capital: City;
@@ -36,9 +37,9 @@ export class Tribe extends Phaser.GameObjects.Container {
             c.destroy();
         }
 
-        // for (let u of this.units) {
-        //     u.destroy();
-        // }
+        for (let u of this.units) {
+            u.destroy();
+        }
         super.destroy();
     }
 
@@ -75,6 +76,15 @@ export class Tribe extends Phaser.GameObjects.Container {
         this.add(city);
 
         this.bringToTop(city);
+    }
+
+    /**
+     * Remvoes the given unit from the tribe
+     * @param unit 
+     */
+    removeUnit(unit: Unit) {
+        let i = this.units.indexOf(unit);
+        this.units.splice(i, 1);
     }
 
 }
