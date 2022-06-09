@@ -16,7 +16,9 @@ export class Helpers {
 
         let qualif = ['Great ', 'New ', 'Old ', ''];
 
-        return "";//chance.pickone(qualif) + chance.pickone(pre) + chance.pickone(suf);
+        return Phaser.Math.RND.pick(qualif) +
+            Phaser.Math.RND.pick(pre) +
+            Phaser.Math.RND.pick(suf);
     }
 
     /**

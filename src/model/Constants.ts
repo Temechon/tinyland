@@ -50,16 +50,13 @@ export abstract class Constants {
         },
     };
     public static LAYER = {
-        FOG_OF_WAR: 20,
-        RESOURCES_MAP: 17,
-        UNITS: 10,
-        TREES_AND_RESOURCES: 5,
-        TRIBE_PLAYER: 3,
-        TRIBE_ROOT: 2,
-        MAP: {
-            RIVER: 2,
-            ROOT: 1
-        }
+        FOG_OF_WAR: 30,
+        CITY_NAMES: 20,
+        UNITS: 11,
+        TREES_AND_RESOURCES: 9,
+        SELECTOR: 7,
+        TRIBE: 3,
+        MAP: 1
     }
 
     static EVENTS = {

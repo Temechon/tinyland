@@ -1,13 +1,16 @@
 import { City } from "./City";
 import { Constants } from "./Constants";
 import { ResourceType, Tile } from "./map/Tile";
+import { WorldMap } from "./map/WorldMap";
 import { Unit } from "./Unit";
+import { UnitInfo } from "./UnitInfo";
 
 /**
  * A tribe is a set of cities, units and resources available on the map.
  */
 export class Tribe extends Phaser.GameObjects.Container {
 
+    map: WorldMap;
 
     public cities: City[] = [];
     public units: Unit[] = [];
@@ -25,11 +28,16 @@ export class Tribe extends Phaser.GameObjects.Container {
     exterminated: boolean = false;
 
 
-    constructor(scene: Phaser.Scene, name: string) {
-        super(scene);
-        this.name = name;
+    constructor(config: {
+        scene: Phaser.Scene,
+        name: string,
+        map: WorldMap
+    }) {
+        super(config.scene);
+        this.name = config.name;
+        this.map = config.map;
         this.scene.add.existing(this);
-        this.depth = Constants.LAYER.TRIBE_ROOT;
+        this.depth = Constants.LAYER.TRIBE;
     }
 
     destroy() {
@@ -51,7 +59,8 @@ export class Tribe extends Phaser.GameObjects.Container {
         let city = new City({
             scene: this.scene,
             tile: tile,
-            tribe: this
+            tribe: this,
+            map: this.map
         });
         // Update the tile resource : add one gold and one science
         tile.resources[ResourceType.gold]++
@@ -62,20 +71,28 @@ export class Tribe extends Phaser.GameObjects.Container {
             this.capital = city;
         }
 
-        this.addCity(city);
+        this.cities.push(city);
+        this.add(city);
+
+        this.bringToTop(city);
 
         return city;
     }
 
     /**
-     * Add the given city in the empire
+     * Add the given unit to the tribe
+     * @param info 
      */
-    addCity(city: City) {
-
-        this.cities.push(city);
-        this.add(city);
-
-        this.bringToTop(city);
+    addUnit(info: UnitInfo, tile: Tile) {
+        const unit = new Unit({
+            scene: this.scene,
+            infos: info,
+            map: this.map,
+            tile: tile,
+            tribe: this
+        });
+        this.units.push(unit);
+        this.scene.add.existing(unit);
     }
 
     /**
@@ -85,6 +102,15 @@ export class Tribe extends Phaser.GameObjects.Container {
     removeUnit(unit: Unit) {
         let i = this.units.indexOf(unit);
         this.units.splice(i, 1);
+    }
+
+    /**
+     * Reset the state of all units
+     */
+    nextTurn() {
+        for (let u of this.units) {
+            u.nextTurn();
+        }
     }
 
 }

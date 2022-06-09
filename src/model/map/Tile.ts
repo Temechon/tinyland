@@ -1,12 +1,13 @@
+import * as _ from 'underscore';
+import { CameraHelper } from "../../helpers/CameraHelper";
 import { guid } from "../../helpers/Helpers";
 import { HexGrid } from "../../helpers/HexGrid";
 import { ratio } from "../../scenes/Boot";
+import { City } from "../City";
+import { Constants } from "../Constants";
+import { IClickable } from "../IClickable";
 import { TileInfo, TileType } from "./TileInfo";
 
-import * as _ from 'underscore';
-import { CameraHelper } from "../../helpers/CameraHelper";
-import { IClickable } from "../IClickable";
-import { City } from "../City";
 
 enum NEIGHBOURS_DIRECTIONS {
     NORTH_WEST = 0,
@@ -51,6 +52,12 @@ export class Tile extends Phaser.GameObjects.Image implements IClickable {
     /** The list of sprites added on this tile (trees, rocks...) */
     assets: Array<Phaser.GameObjects.Image> = [];
 
+    /** The graphics above this tile to highlight it */
+    light: Phaser.GameObjects.Graphics;
+
+    /** The tribe this tile belongs to */
+    belongsTo: City = null;
+
 
     constructor(config: {
         scene: Phaser.Scene,
@@ -74,14 +81,26 @@ export class Tile extends Phaser.GameObjects.Image implements IClickable {
      * Action called when this tile is clicked
      */
     activate() {
-        console.log("🌍 --> Activated")
+        console.log(`🌍 --> Selected.`);
+        this.highlight()
+        let rez = "";
+        if (this.resources[ResourceType.food] > 0) {
+            rez += `🌽 -> ${this.resources[ResourceType.food]}\n`;
+        }
+        if (this.resources[ResourceType.science] > 0) {
+            rez += `🧬 -> ${this.resources[ResourceType.science]}\n`;
+        }
+        if (this.resources[ResourceType.gold] > 0) {
+            rez += `💰 -> ${this.resources[ResourceType.gold]}\n`;
+        }
+        console.log(rez);
     }
     /**
      * Called when this tile is deactivated
      */
     public deactivate() {
         this.currentlyActivatedIndex = 0;
-        console.log("🌍 --> Deactivated")
+        console.log("🌍 --> Unselected")
     }
 
     /** 
@@ -233,13 +252,13 @@ export class Tile extends Phaser.GameObjects.Image implements IClickable {
      * Returns a graphics texture that is the same hexagon than this tile
      * @param color 
      */
-    public getHexPrint(color: number): Phaser.GameObjects.Graphics {
+    public getHexPrint(color: number, alpha: number = 1, interactive = false): Phaser.GameObjects.Graphics {
 
         let radius = this.scene.make.graphics({ x: this.worldPosition.x, y: this.worldPosition.y, add: false });
         radius.fillStyle(color, 1.0);
         radius.beginPath();
         radius.scale = ratio;
-        // radius.alpha = 0.5
+        radius.alpha = alpha
 
         let points = HexGrid.getPoints({
             width: this.width,
@@ -249,10 +268,12 @@ export class Tile extends Phaser.GameObjects.Image implements IClickable {
         })
 
         radius.fillPoints(points);
-        radius.setInteractive(
-            new Phaser.Geom.Polygon(points),
-            Phaser.Geom.Polygon.Contains
-        );
+        if (interactive) {
+            radius.setInteractive(
+                new Phaser.Geom.Polygon(points),
+                Phaser.Geom.Polygon.Contains
+            );
+        }
 
         return radius;
     }
@@ -287,7 +308,7 @@ export class Tile extends Phaser.GameObjects.Image implements IClickable {
             duration: 200
         });
 
-        selector.depth = 4;
+        selector.depth = Constants.LAYER.SELECTOR;
         Tile.SELECTOR = selector;
 
         // If we cycle around all stuff on this tile, reset all
@@ -319,6 +340,16 @@ export class Tile extends Phaser.GameObjects.Image implements IClickable {
         this.currentlyActivatedIndex++;
         stuff.activate();
 
+    }
+
+    /** 
+     * Highlight this tile by creating a new graphics object above this tile 
+     */
+    highlight() {
+        let mask = this.getHexPrint(0x00ffaa, 0.75);
+        mask.scale *= 0.75
+        mask.depth = 15
+        this.scene.add.existing(mask);
     }
 
     /**

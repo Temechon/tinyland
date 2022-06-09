@@ -121,7 +121,7 @@ export class Unit extends Phaser.GameObjects.Container implements IClickable {
 
     deactivate() {
 
-        console.log("⚔️ --> Deactivating unit");
+        console.log("⚔️ --> Unselected unit");
         // this.scene.events.emit(Constants.EVENTS.UI_OFF);
 
         if (this._moveRangeGraphics) {
@@ -137,7 +137,7 @@ export class Unit extends Phaser.GameObjects.Container implements IClickable {
     }
 
     activate() {
-        console.log("⚔️ --> Activating unit");
+        console.log("⚔️ --> Selected unit");
 
         // IF this unit does not belong to the player, nothing to do
         if (!this._tribe.isPlayer) {
@@ -209,26 +209,22 @@ export class Unit extends Phaser.GameObjects.Container implements IClickable {
     /**
      * Move this unit to the given tile.
      */
-    move(tile: Tile): Promise<void> {
+    move(tile: Tile) {
 
         this.state = UnitState.MOVING;
 
         // Deactivate this unit
         this.deactivate();
 
-        return new Promise(resolve => {
-
-            this.scene.add.tween({
-                targets: this,
-                x: tile.worldPosition.x,
-                y: tile.worldPosition.y,
-                duration: 50,
-                onComplete: () => {
-                    this.afterMove(tile);
-                    resolve();
-                }
-            })
-        });
+        this.scene.add.tween({
+            targets: this,
+            x: tile.worldPosition.x,
+            y: tile.worldPosition.y,
+            duration: 50,
+            onComplete: () => {
+                this.afterMove(tile);
+            }
+        })
 
 
     }
@@ -315,7 +311,7 @@ export class Unit extends Phaser.GameObjects.Container implements IClickable {
      * After movement, we check if this unit can attack another one. If so, engage attack mode
      * The parameter is the tile the unit is on
      */
-    afterMove(tile: Tile) {
+    private afterMove(tile: Tile) {
         // Remove this unit from the current tile
         this.currentTile.removeClickable(this);
         this.currentTile.deactivate();
@@ -365,6 +361,14 @@ export class Unit extends Phaser.GameObjects.Container implements IClickable {
         }
 
         console.log("ATTACK MODE")
+    }
+
+    /**
+     * Deactivate the unit and rset its state so it can be used again
+     */
+    nextTurn() {
+        this.deactivate();
+        this.state = UnitState.IDLE;
     }
 
     /**

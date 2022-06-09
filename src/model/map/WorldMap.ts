@@ -51,7 +51,7 @@ export class WorldMap extends Phaser.GameObjects.Container {
 
         let mapCoords = this._grid.hexagon(0, 0, this.radius, true);
         this.nbTiles = mapCoords.length;
-        this.depth = Constants.LAYER.MAP.ROOT;
+        this.depth = Constants.LAYER.MAP;
 
         console.log("MAP - Radius : ", this.radius);
         console.log("MAP - Nb tiles : ", this.nbTiles);
